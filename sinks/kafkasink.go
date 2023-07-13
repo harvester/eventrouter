@@ -18,9 +18,10 @@ package sinks
 
 import (
 	"encoding/json"
+
 	"github.com/Shopify/sarama"
 	"github.com/golang/glog"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // KafkaSink implements the EventSinkInterface
@@ -65,7 +66,7 @@ func sinkFactory(brokers []string, async bool, retryMax int, saslUser string, sa
 }
 
 // UpdateEvents implements EventSinkInterface.UpdateEvents
-func (ks *KafkaSink) UpdateEvents(eNew *v1.Event, eOld *v1.Event) {
+func (ks *KafkaSink) UpdateEvents(eNew *corev1.Event, eOld *corev1.Event) {
 
 	eData := NewEventData(eNew, eOld)
 

@@ -150,7 +150,12 @@ func main() {
 		go func() {
 			glog.Info("Starting prometheus metrics.")
 			http.Handle("/metrics", promhttp.Handler())
-			glog.Warning(http.ListenAndServe(*addr, nil))
+
+			server := &http.Server{
+				Addr:              *addr,
+				ReadHeaderTimeout: 30 * time.Second,
+			}
+			glog.Warning(server.ListenAndServe())
 		}()
 	}
 

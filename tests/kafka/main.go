@@ -22,12 +22,12 @@ import (
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	ref "k8s.io/client-go/tools/reference"
 
-	"github.com/harvester/eventrouter/sinks"
+	"github.com/heptiolabs/eventrouter/sinks"
 )
 
 type KafkaEnv struct {
@@ -44,12 +44,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	kSink, err := sinks.NewKafkaSink(k.Brokers, k.Topic, k.Async, k.RetryMax, "user", "password")
+	sink, err := sinks.NewKafkaSink(k.Brokers, k.Topic, k.Async, k.RetryMax, "user", "password")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	testPod := &v1.Pod{
+	testPod := &corev1.Pod{
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Pod",
 		},
@@ -59,7 +59,7 @@ func main() {
 			Namespace: "someNameSpace",
 			UID:       "some-UID",
 		},
-		Spec: v1.PodSpec{},
+		Spec: corev1.PodSpec{},
 	}
 
 	podRef, err := ref.GetReference(scheme.Scheme, testPod)
@@ -73,22 +73,22 @@ func main() {
 		"DeleteInCluster": "Mock delete event on Pod",
 	}
 
-	var oldData, newData *v1.Event
+	var oldData, newData *corev1.Event
 
 	for k, v := range kvs {
-		newData = newMockEvent(podRef, v1.EventTypeWarning, k, v)
-		kSink.UpdateEvents(newData, oldData)
+		newData = newMockEvent(podRef, corev1.EventTypeWarning, k, v)
+		sink.UpdateEvents(newData, oldData)
 		oldData = newData
 		time.Sleep(time.Second)
 	}
 }
 
 // TODO: This function should be moved where it can be re-used...
-func newMockEvent(ref *v1.ObjectReference, eventtype, reason, message string) *v1.Event {
+func newMockEvent(ref *corev1.ObjectReference, eventtype, reason, message string) *corev1.Event {
 	tm := metav1.Time{
 		Time: time.Now(),
 	}
-	return &v1.Event{
+	return &corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%v.%x", ref.Name, tm.UnixNano()),
 			Namespace: ref.Namespace,

@@ -30,7 +30,7 @@ import (
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
-	"github.com/harvester/eventrouter/sinks"
+	"github.com/heptiolabs/eventrouter/sinks"
 )
 
 var (

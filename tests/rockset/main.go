@@ -22,7 +22,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	ref "k8s.io/client-go/tools/reference"
 
-	"github.com/harvester/eventrouter/sinks"
+	"github.com/heptiolabs/eventrouter/sinks"
 )
 
 func main() {

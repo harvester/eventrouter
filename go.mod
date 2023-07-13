@@ -1,4 +1,4 @@
-module github.com/harvester/eventrouter
+module github.com/heptiolabs/eventrouter
 
 go 1.19
 
