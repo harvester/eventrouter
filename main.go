@@ -30,7 +30,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
-
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -51,7 +50,7 @@ func sigHandler() <-chan struct{} {
 			syscall.SIGSEGV, // FullDerp
 			syscall.SIGABRT, // Abnormal termination
 			syscall.SIGILL,  // illegal instruction
-			syscall.SIGFPE) // floating point - this is why we can't have nice things
+			syscall.SIGFPE)  // floating point - this is why we can't have nice things
 		sig := <-c
 		glog.Warningf("Signal (%v) Detected, Shutting Down", sig)
 		close(stop)

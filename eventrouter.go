@@ -20,17 +20,17 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/heptiolabs/eventrouter/sinks"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
-
 	v1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/harvester/eventrouter/sinks"
 )
 
 var (
