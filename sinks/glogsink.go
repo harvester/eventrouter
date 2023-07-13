@@ -20,7 +20,7 @@ import (
 	"encoding/json"
 
 	"github.com/golang/glog"
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // GlogSink is the most basic sink
@@ -35,7 +35,7 @@ func NewGlogSink() EventSinkInterface {
 }
 
 // UpdateEvents implements the EventSinkInterface
-func (gs *GlogSink) UpdateEvents(eNew *v1.Event, eOld *v1.Event) {
+func (gs *GlogSink) UpdateEvents(eNew *corev1.Event, eOld *corev1.Event) {
 	eData := NewEventData(eNew, eOld)
 
 	if eJSONBytes, err := json.Marshal(eData); err == nil {

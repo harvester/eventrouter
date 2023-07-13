@@ -23,8 +23,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
 	"github.com/sethgrid/pester"
-
-	"k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 /*
@@ -43,7 +42,7 @@ can send them, if not, a single HTTP request is made for each event.
 (Hopefully in a single keep-alive http connection, which is go's default.)
 
 But with the payload of the messages being a serialized JSON object
-containing the kubernetes v1.Event.
+containing the kubernetes corev1.Event.
 */
 
 // HTTPSink wraps an HTTP endpoint that messages should be sent to.
@@ -81,7 +80,7 @@ func NewHTTPSink(sinkURL string, overflow bool, bufferSize int) *HTTPSink {
 // event data to the event OverflowingChannel, which should never block.
 // Messages that are buffered beyond the bufferSize specified for this HTTPSink
 // are discarded.
-func (h *HTTPSink) UpdateEvents(eNew *v1.Event, eOld *v1.Event) {
+func (h *HTTPSink) UpdateEvents(eNew *corev1.Event, eOld *corev1.Event) {
 	h.eventCh.In() <- NewEventData(eNew, eOld)
 }
 

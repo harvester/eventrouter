@@ -4,11 +4,12 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/crewjam/rfc5424"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handler(_ http.ResponseWriter, r *http.Request) {
 	log.Printf("request method=%s from=%s", r.Method, r.RemoteAddr)
 	if r.Body == nil {
 		return
@@ -34,5 +35,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	log.Println("starting httpsink server")
 	http.HandleFunc("/", handler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+
+	server := &http.Server{
+		Addr:              ":8080",
+		ReadHeaderTimeout: 30 * time.Second,
+	}
+	log.Fatal(server.ListenAndServe())
 }

@@ -6,25 +6,23 @@ import (
 	"fmt"
 	"time"
 
-	"k8s.io/api/core/v1"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/eapache/channels"
 	"github.com/golang/glog"
+	corev1 "k8s.io/api/core/v1"
 )
 
 /*
 S3Sink is the sink that uploads the kubernetes events as json object stored in a file.
-The sinker uploads it to s3 if any of the below criteria gets fullfilled
-1) Time(uploadInterval): If the specfied time has passed since the last upload it uploads
+The sinker uploads it to s3 if any of the below criteria gets fulfilled
+1) Time(uploadInterval): If the specified time has passed since the last upload it uploads
 2) [TODO] Data size: If the total data getting uploaded becomes greater than N bytes
 
 S3 is cheap and the sink can be used to store events data. S3 can later then be used with
 Redshift and other visualization tools to use this data.
-
 */
 type S3Sink struct {
 	// uploader is the uploader client from aws which makes the API call to aws for upload
@@ -90,7 +88,7 @@ func NewS3Sink(awsAccessKeyID string, s3SinkSecretAccessKey string, s3SinkRegion
 // event data to the event OverflowingChannel, which should never block.
 // Messages that are buffered beyond the bufferSize specified for this HTTPSink
 // are discarded.
-func (s *S3Sink) UpdateEvents(eNew *v1.Event, eOld *v1.Event) {
+func (s *S3Sink) UpdateEvents(eNew *corev1.Event, eOld *corev1.Event) {
 	s.eventCh.In() <- NewEventData(eNew, eOld)
 }
 
