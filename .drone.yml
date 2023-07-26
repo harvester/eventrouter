@@ -28,8 +28,6 @@ steps:
       files:
         - "dist/artifacts/*"
     when:
-      instance:
-        - drone-publish.rancher.io
       ref:
         - refs/head/master
         - refs/tags/*
@@ -68,8 +66,6 @@ steps:
       username:
         from_secret: docker_username
     when:
-      instance:
-        - drone-publish.rancher.io
       ref:
         - refs/tags/*
         - refs/head/master
