@@ -1,6 +1,6 @@
 module github.com/heptiolabs/eventrouter
 
-go 1.19
+go 1.20
 
 replace (
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
