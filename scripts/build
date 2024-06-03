@@ -11,7 +11,8 @@ if [ "$(uname)" = "Linux" ]; then
 fi
 
 CGO_ENABLED=0 go build -ldflags "$LINKFLAGS $OTHER_LINKFLAGS" -o bin/eventrouter
-if [ "$CROSS" = "true" ] && [ "$ARCH" = "amd64" ]; then
-    GOOS=darwin go build -ldflags "$LINKFLAGS" -o bin/eventrouter-darwin
-    GOOS=windows go build -ldflags "$LINKFLAGS" -o bin/eventrouter-windows
-fi
+
+for arch in "amd64" "arm64"; do
+    GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "$LINKFLAGS $OTHER_LINKFLAGS" -o bin/eventrouter-"$arch"
+done
+

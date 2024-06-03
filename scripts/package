@@ -5,14 +5,11 @@ source $(dirname $0)/version
 
 cd $(dirname $0)/..
 
-mkdir -p dist/artifacts
-cp bin/eventrouter dist/artifacts/eventrouter${SUFFIX}
-
 IMAGE=${REPO}/eventrouter:${TAG}
 DOCKERFILE=package/Dockerfile
 if [ -e ${DOCKERFILE}.${ARCH} ]; then
     DOCKERFILE=${DOCKERFILE}.${ARCH}
 fi
 
-docker build -f ${DOCKERFILE} -t ${IMAGE} .
+buildx build --load -f ${DOCKERFILE} -t ${IMAGE} .
 echo Built ${IMAGE}
