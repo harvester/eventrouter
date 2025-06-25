@@ -8,14 +8,14 @@ on:
 
 jobs:
   build-for-master:
-    uses: ./.github/workflows/factory.yaml
+    uses: ./.github/workflows/factory.yml
     with:
       tag: ${{ github.ref_name }}-head
       push: true
     secrets: inherit
   
   build-for-v1_6:
-    uses: ./.github/workflows/factory.yaml
+    uses: ./.github/workflows/factory.yml
     with:
       refs: v1.6
       tag: v1.6-head
