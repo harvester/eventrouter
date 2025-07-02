@@ -36,6 +36,14 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	name = "harvester-eventrouter"
+)
+
+var (
+	VERSION string
+)
+
 // addr tells us what address to have the Prometheus metrics listen on.
 var addr = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
 
@@ -108,6 +116,8 @@ func main() {
 	var wg sync.WaitGroup
 
 	clientset := loadConfig()
+
+	glog.Infof("Starting %v version %v", name, VERSION)
 
 	var lastResourceVersionPosition string
 	var mostRecentResourceVersion *string
