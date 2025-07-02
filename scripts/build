@@ -10,9 +10,7 @@ if [ "$(uname)" = "Linux" ]; then
     OTHER_LINKFLAGS="-extldflags -static -s"
 fi
 
-CGO_ENABLED=0 go build -ldflags "$LINKFLAGS $OTHER_LINKFLAGS" -o bin/eventrouter
-
 for arch in "amd64" "arm64"; do
-    GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "$LINKFLAGS $OTHER_LINKFLAGS" -o bin/eventrouter-"$arch"
+    GOARCH="$arch" CGO_ENABLED=0 go build -ldflags "-X main.VERSION=$VERSION $LINKFLAGS $OTHER_LINKFLAGS" -o bin/eventrouter-"$arch"
 done
 
