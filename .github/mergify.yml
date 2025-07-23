@@ -1,0 +1,11 @@
+pull_request_rules:
+- name: Automatically open v1.6 backport PR
+  conditions:
+    - base=master
+    - label="pr-backport-to/v1.6"
+  actions:
+    backport:
+      branches:
+        - v1.6
+      assignees:
+        - "{{ author }}"
