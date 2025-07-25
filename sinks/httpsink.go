@@ -144,13 +144,13 @@ func (h *HTTPSink) drainEvents(events []EventData) {
 
 	req, err := http.NewRequest("POST", h.SinkURL, h.bodyBuf)
 	if err != nil {
-		glog.Warningf(err.Error())
+		glog.Warningf("%s", err.Error())
 		return
 	}
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {
-		glog.Warningf(err.Error())
+		glog.Warningf("%s", err.Error())
 		return
 	}
 
