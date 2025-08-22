@@ -45,7 +45,7 @@ func TestUpdateEvents(t *testing.T) {
 	// `got` buffer and records the request.
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seenRequests = append(seenRequests, r)
-		io.Copy(got, r.Body)
+		io.Copy(got, r.Body) //nolint:errcheck
 		w.WriteHeader(mockStatus)
 	}))
 	defer srv.Close()

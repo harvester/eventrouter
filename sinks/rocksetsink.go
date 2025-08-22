@@ -56,14 +56,19 @@ func (rs *RocksetSink) UpdateEvents(eNew *v1.Event, eOld *v1.Event) {
 
 	if eJSONBytes, err := json.Marshal(eData); err == nil {
 		var m map[string]interface{}
-		json.Unmarshal(eJSONBytes, &m)
+		if err = json.Unmarshal(eJSONBytes, &m); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to json deserialize event: %v", err)
+			return
+		}
 		docs := []interface{}{
 			m,
 		}
 		dinfo := models.AddDocumentsRequest{
 			Data: docs,
 		}
-		rs.client.Documents.Add(rs.rocksetWorkspaceName, rs.rocksetCollectionName, dinfo)
+		if _, _, err = rs.client.Documents.Add(rs.rocksetWorkspaceName, rs.rocksetCollectionName, dinfo); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to add document to Rockset: %v", err)
+		}
 	} else {
 		fmt.Fprintf(os.Stderr, "Failed to json serialize event: %v", err)
 	}

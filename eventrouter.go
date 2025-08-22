@@ -98,7 +98,7 @@ type EventRouter struct {
 
 // NewEventRouter will create a new event router using the input params
 func NewEventRouter(kubeClient kubernetes.Interface, eventsInformer coreinformers.EventInformer,
-	lastSeenResourceVersion string, lastResourceVersionPosition func(rv string)) *EventRouter {
+	lastSeenResourceVersion string, lastResourceVersionPosition func(rv string)) (*EventRouter, error) {
 	if viper.GetBool("enable-prometheus") {
 		prometheus.MustRegister(kubernetesWarningEventCounterVec)
 		prometheus.MustRegister(kubernetesNormalEventCounterVec)
@@ -112,14 +112,16 @@ func NewEventRouter(kubeClient kubernetes.Interface, eventsInformer coreinformer
 		lastSeenResourceVersion:     lastSeenResourceVersion,
 		lastResourceVersionPosition: lastResourceVersionPosition,
 	}
-	eventsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+	if _, err := eventsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc:    er.addEvent,
 		UpdateFunc: er.updateEvent,
 		DeleteFunc: er.deleteEvent,
-	})
+	}); err != nil {
+		return nil, err
+	}
 	er.eLister = eventsInformer.Lister()
 	er.eListerSynched = eventsInformer.Informer().HasSynced
-	return er
+	return er, nil
 }
 
 // Run starts the EventRouter/Controller.
