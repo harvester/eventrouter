@@ -18,7 +18,6 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
@@ -87,7 +86,9 @@ func loadConfig() kubernetes.Interface {
 		panic(err.Error())
 	}
 
-	viper.BindEnv("kubeconfig") // Allows the KUBECONFIG env var to override where the kubeconfig is
+	if err = viper.BindEnv("kubeconfig"); err != nil { // Allows the KUBECONFIG env var to override where the kubeconfig is
+		panic(err)
+	}
 
 	// Allow specifying a custom config file via the EVENTROUTER_CONFIG env var
 	if forceCfg := os.Getenv("EVENTROUTER_CONFIG"); forceCfg != "" {
@@ -126,7 +127,7 @@ func main() {
 	resourceVersionPositionFunc := func(resourceVersion string) {
 		if resourceVersionPositionPath != "" {
 			if cast.ToInt(resourceVersion) > cast.ToInt(mostRecentResourceVersion) {
-				err := ioutil.WriteFile(resourceVersionPositionPath, []byte(resourceVersion), 0644)
+				err := os.WriteFile(resourceVersionPositionPath, []byte(resourceVersion), 0644)
 				if err != nil {
 					glog.Errorf("failed to write lastResourceVersionPosition")
 				} else {
@@ -139,7 +140,7 @@ func main() {
 	if resourceVersionPositionPath != "" {
 		_, err := os.Stat(resourceVersionPositionPath)
 		if !os.IsNotExist(err) {
-			resourceVersionBytes, err := ioutil.ReadFile(resourceVersionPositionPath)
+			resourceVersionBytes, err := os.ReadFile(resourceVersionPositionPath)
 			if err != nil {
 				glog.Errorf("failed to read resource version bookmark from %s", resourceVersionPositionPath)
 			} else {
@@ -152,7 +153,10 @@ func main() {
 	eventsInformer := sharedInformers.Core().V1().Events()
 
 	// TODO: Support locking for HA https://github.com/kubernetes/kubernetes/pull/42666
-	eventRouter := NewEventRouter(clientset, eventsInformer, lastResourceVersionPosition, resourceVersionPositionFunc)
+	eventRouter, err := NewEventRouter(clientset, eventsInformer, lastResourceVersionPosition, resourceVersionPositionFunc)
+	if err != nil {
+		panic(err)
+	}
 	stop := sigHandler()
 
 	// Startup the http listener for Prometheus Metrics endpoint.
