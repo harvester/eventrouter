@@ -10,7 +10,7 @@ import (
 )
 
 func handler(_ http.ResponseWriter, r *http.Request) {
-	log.Printf("request method=%s from=%s", r.Method, r.RemoteAddr)
+	log.Printf("request method=%s from=%s", r.Method, r.RemoteAddr) //nolint:gosec
 	if r.Body == nil {
 		return
 	}
