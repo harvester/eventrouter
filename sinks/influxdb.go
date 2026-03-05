@@ -78,7 +78,7 @@ type InfluxDBSink struct {
 
 type InfluxdbConfig struct {
 	User                  string
-	Password              string
+	Password              string //nolint:gosec
 	Secure                bool
 	Host                  string
 	DbName                string
