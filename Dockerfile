@@ -1,23 +1,54 @@
-# Copyright 2017 Heptio Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# syntax=docker/dockerfile:1
+# check=skip=InvalidDefaultArgInFrom
 
-FROM alpine:3.9
-MAINTAINER Timothy St. Clair "tstclair@heptio.com"  
+FROM registry.suse.com/bci/golang:1.25.7 AS builder
 
-WORKDIR /app
-RUN apk update --no-cache && apk add ca-certificates
-ADD eventrouter /app/
-USER nobody:nobody
+ARG MK_HOST_ARCH
+ENV ARCH=$MK_HOST_ARCH
+ENV GOTOOLCHAIN=auto
 
-CMD ["/bin/sh", "-c", "/app/eventrouter -v 3 -logtostderr"]
+RUN zypper -n rm container-suseconnect 2>/dev/null || true && \
+    zypper -n install git curl gzip tar wget awk
+
+# Copy golangci-lint binary from a multi-arch digest, zero-trust
+COPY --from=golangci/golangci-lint:v2.11.4-alpine@sha256:72bcd68512b4e27540dd3a778a1b7afd45759d8145cfb3c089f1d7af53e718e9 /usr/bin/golangci-lint /usr/local/bin/golangci-lint
+
+ENV HOME=/go/src/github.com/heptiolabs/eventrouter
+
+
+# ---- base ----
+FROM builder AS base
+WORKDIR /go/src/github.com/heptiolabs/eventrouter
+
+# to exclude some files, add them in .dockerignore
+COPY . .
+
+
+# ---- build ----
+FROM base AS build
+ARG MK_REPO_ID
+
+RUN --mount=type=cache,target=/go/pkg/mod,id=eventrouter-go-mod-${MK_REPO_ID} \
+    --mount=type=cache,target=/go/src/github.com/heptiolabs/eventrouter/.cache/go-build,id=eventrouter-go-build-${MK_REPO_ID} \
+    ./scripts/build
+
+FROM scratch AS build-output
+COPY --from=build /go/src/github.com/heptiolabs/eventrouter/bin/ /bin/
+
+
+# ---- validate ----
+FROM base AS validate
+ARG MK_REPO_ID
+
+RUN --mount=type=cache,target=/go/pkg/mod,id=eventrouter-go-mod-${MK_REPO_ID} \
+    --mount=type=cache,target=/go/src/github.com/heptiolabs/eventrouter/.cache/go-build,id=eventrouter-go-build-${MK_REPO_ID} \
+    ./scripts/validate
+
+
+# ---- test ----
+FROM base AS test
+ARG MK_REPO_ID
+
+RUN --mount=type=cache,target=/go/pkg/mod,id=eventrouter-go-mod-${MK_REPO_ID} \
+    --mount=type=cache,target=/go/src/github.com/heptiolabs/eventrouter/.cache/go-build,id=eventrouter-go-build-${MK_REPO_ID} \
+    ./scripts/test
