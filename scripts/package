@@ -1,15 +1,35 @@
 #!/bin/bash
 set -e
 
-source $(dirname $0)/version
+TOP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
+SCRIPTS_DIR="${TOP_DIR}/scripts"
+PACKAGE_DIR="${TOP_DIR}/package"
 
-cd $(dirname $0)/..
+source "${SCRIPTS_DIR}/version"
+
+if [ -z "${ARCH}" ]; then
+    case "$(uname -m)" in
+        x86_64)
+            ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            ARCH="arm64"
+            ;;
+        *)
+            ARCH="amd64"
+            ;;
+    esac
+fi
+SUFFIX="-${ARCH}"
 
 IMAGE=${REPO}/eventrouter:${TAG}
-DOCKERFILE=package/Dockerfile
+DOCKERFILE=${PACKAGE_DIR}/Dockerfile
 if [ -e ${DOCKERFILE}.${ARCH} ]; then
     DOCKERFILE=${DOCKERFILE}.${ARCH}
 fi
 
-docker buildx build --load -f ${DOCKERFILE} -t ${IMAGE} .
-echo Built ${IMAGE}
+echo "Building image ${IMAGE}"
+
+docker build -f ${DOCKERFILE} -t ${IMAGE} "${TOP_DIR}"
+
+echo "Built ${IMAGE}"
