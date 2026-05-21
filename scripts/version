@@ -26,7 +26,7 @@ if ! git -C "${TOP_DIR}" rev-parse HEAD &>/dev/null 2>&1; then
 fi
 
 unset DIRTY
-if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+if [ -n "$(git -C "${TOP_DIR}" status --porcelain --untracked-files=no)" ]; then
     echo "Warning: there are uncommitted files; the build result might not be as expected" >&2
     DIRTY="-dirty"
 fi

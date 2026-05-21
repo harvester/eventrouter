@@ -7,7 +7,19 @@ PACKAGE_DIR="${TOP_DIR}/package"
 
 source "${SCRIPTS_DIR}/version"
 
-ARCH=${ARCH:-"amd64"}
+if [ -z "${ARCH}" ]; then
+    case "$(uname -m)" in
+        x86_64)
+            ARCH="amd64"
+            ;;
+        aarch64|arm64)
+            ARCH="arm64"
+            ;;
+        *)
+            ARCH="amd64"
+            ;;
+    esac
+fi
 SUFFIX="-${ARCH}"
 
 IMAGE=${REPO}/eventrouter:${TAG}
@@ -18,6 +30,6 @@ fi
 
 echo "Building image ${IMAGE}"
 
-docker build -f ${DOCKERFILE} -t ${IMAGE} .
+docker build -f ${DOCKERFILE} -t ${IMAGE} "${TOP_DIR}"
 
 echo "Built ${IMAGE}"

@@ -32,7 +32,12 @@ MK_SYSTEM_ID := $(strip $(shell \
 	fi))
 
 # User might have several repos in a host. Distinguish each by using the abs path of the repo
-MK_REPO_ID := $(shell printf '%s' "$(ROOT)$(MK_SYSTEM_ID)" | sha256sum | cut -c1-8)
+MK_REPO_ID := $(shell \
+	if command -v sha256sum >/dev/null 2>&1; then \
+		printf '%s' "$(ROOT)$(MK_SYSTEM_ID)" | sha256sum | cut -c1-8; \
+	else \
+		printf '%s' "$(ROOT)$(MK_SYSTEM_ID)" | shasum -a 256 | cut -c1-8; \
+	fi)
 export MK_REPO_ID
 
 MK_DOCKER_PROGRESS ?= plain
@@ -54,8 +59,6 @@ DOCKER_BUILD = docker build \
 	--build-arg MK_REPO_ID \
 	--build-arg MK_HOST_ARCH \
 	-f $(ROOT)/Dockerfile $(ROOT)
-
-.DEFAULT_GOAL := ci
 
 .PHONY: build ci default package release test validate gen-version-env gen-version-env-debug clean-all
 
@@ -107,7 +110,7 @@ clean-all:
 	$(BANNER)
 	@docker rmi -f $(MK_VALIDATE_CACHE_IMAGE) $(MK_TEST_CACHE_IMAGE) || true
 
-.DEFAULT_GOAL := default
+.DEFAULT_GOAL := ci
 
 ci: build package validate test
 
