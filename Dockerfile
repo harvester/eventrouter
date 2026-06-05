@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # check=skip=InvalidDefaultArgInFrom
 
-FROM registry.suse.com/bci/golang:1.25.7 AS builder
+FROM registry.suse.com/bci/golang:1.26 AS builder
 
 ARG MK_HOST_ARCH
 ENV ARCH=$MK_HOST_ARCH
@@ -11,7 +11,7 @@ RUN zypper -n rm container-suseconnect 2>/dev/null || true && \
     zypper -n install git curl gzip tar wget awk
 
 # Copy golangci-lint binary from a multi-arch digest, zero-trust
-COPY --from=golangci/golangci-lint:v2.11.4-alpine@sha256:72bcd68512b4e27540dd3a778a1b7afd45759d8145cfb3c089f1d7af53e718e9 /usr/bin/golangci-lint /usr/local/bin/golangci-lint
+COPY --from=golangci/golangci-lint:v2.12.2-alpine@sha256:91b27804074a0bacea298707f016911e60cf0cdbc6c7bf5ccacb5f0606d18d60 /usr/bin/golangci-lint /usr/local/bin/golangci-lint
 
 ENV HOME=/go/src/github.com/heptiolabs/eventrouter
 
