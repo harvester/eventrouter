@@ -1,6 +1,10 @@
 module github.com/heptiolabs/eventrouter
 
+<<<<<<< HEAD
 go 1.25.2
+=======
+go 1.26
+>>>>>>> 0e3d4be (chore: bump golang 1.26)
 
 replace github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 
