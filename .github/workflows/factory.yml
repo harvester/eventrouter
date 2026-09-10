@@ -12,8 +12,8 @@ on:
         type: boolean
 
 env:
-  repo: "rancher"
-  controllerImageName: "harvester-eventrouter"
+  PLATFORMS: linux/amd64,linux/arm64
+  IMAGE_NAME: harvester-eventrouter
 
 jobs:
   dapper-build:
@@ -41,26 +41,67 @@ jobs:
     - name: Run dapper
       run: make ci
 
-    - name: Read some Secrets
-      uses: rancher-eio/read-vault-secrets@d266f55186f80a893839f6e15662e67388e443e6 # main
+    - name: Resolve registries
+      id: resolve
       if: ${{ inputs.push == true }}
+      uses: harvester/harvester-actions/actions/resolve-registries@f5246cd8d423922ea55141991155f4b05f665bd5 # main
       with:
-        secrets: |
-          secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials username | DOCKER_USERNAME ;
-          secret/data/github/repo/${{ github.repository }}/dockerhub/harvester/credentials password | DOCKER_PASSWORD
-    - name: Login to Docker Hub
-      uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-      if: ${{ inputs.push == true }}
-      with:
-        username: ${{ env.DOCKER_USERNAME }}
-        password: ${{ env.DOCKER_PASSWORD }}
+        release-tag-name: ${{ inputs.tag }}
+        is-release: ${{ github.event_name == 'release' && github.event.action == 'published' }}
 
-    - name: Docker Build (Controller)
-      uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+    - name: Set image tag
+      if: ${{ inputs.push == true }}
+      run: echo "IMAGE_TAG=${RELEASE_TAG_NAME#prime-}" >> "$GITHUB_ENV"
+      env:
+        RELEASE_TAG_NAME: ${{ inputs.tag }}
+
+    - name: Login to Docker Hub
+      id: login-docker
+      if: ${{ steps.resolve.outputs.use-docker-io == 'true' }}
+      uses: harvester/harvester-actions/actions/login-docker-hub@f5246cd8d423922ea55141991155f4b05f665bd5 # main
+
+    - name: Publish public ${{ env.IMAGE_NAME }} image
+      if: ${{ steps.resolve.outputs.use-docker-io == 'true' }}
+      uses: harvester/harvester-actions/actions/publish-public-image@f5246cd8d423922ea55141991155f4b05f665bd5 # main
       with:
-        provenance: false
         context: .
-        platforms: linux/amd64,linux/arm64
-        file: package/Dockerfile
-        push: ${{ inputs.push }}
-        tags: ${{ env.repo }}/${{ env.controllerImageName }}:${{ inputs.tag }}
+        dockerfile: package/Dockerfile
+        image: ${{ env.IMAGE_NAME }}
+        tag: ${{ env.IMAGE_TAG }}
+        platforms: ${{ env.PLATFORMS }}
+        registry: ${{ steps.login-docker.outputs.registry }}
+        repository: ${{ steps.login-docker.outputs.repository }}
+
+    - name: Login to Staging Registry
+      id: login-staging
+      if: ${{ steps.resolve.outputs.use-staging == 'true' }}
+      uses: harvester/harvester-actions/actions/login-staging-registry@f5246cd8d423922ea55141991155f4b05f665bd5 # main
+
+    - name: Publish staging ${{ env.IMAGE_NAME }} image
+      if: ${{ steps.resolve.outputs.use-staging == 'true' }}
+      uses: harvester/harvester-actions/actions/publish-prime-image@f5246cd8d423922ea55141991155f4b05f665bd5 # main
+      with:
+        context: .
+        dockerfile: package/Dockerfile
+        image: ${{ env.IMAGE_NAME }}
+        tag: ${{ env.IMAGE_TAG }}
+        platforms: ${{ env.PLATFORMS }}
+        registry: ${{ steps.login-staging.outputs.registry }}
+        repository: ${{ steps.login-staging.outputs.repository }}
+
+    - name: Login to Prime Registry
+      id: login-prime
+      if: ${{ steps.resolve.outputs.use-prime == 'true' }}
+      uses: harvester/harvester-actions/actions/login-prime-registry@f5246cd8d423922ea55141991155f4b05f665bd5 # main
+
+    - name: Publish prime ${{ env.IMAGE_NAME }} image
+      if: ${{ steps.resolve.outputs.use-prime == 'true' }}
+      uses: harvester/harvester-actions/actions/publish-prime-image@f5246cd8d423922ea55141991155f4b05f665bd5 # main
+      with:
+        context: .
+        dockerfile: package/Dockerfile
+        image: ${{ env.IMAGE_NAME }}
+        tag: ${{ env.IMAGE_TAG }}
+        platforms: ${{ env.PLATFORMS }}
+        registry: ${{ steps.login-prime.outputs.registry }}
+        repository: ${{ steps.login-prime.outputs.repository }}
